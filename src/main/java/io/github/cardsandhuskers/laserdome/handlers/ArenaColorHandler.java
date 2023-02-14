@@ -13,6 +13,7 @@ public class ArenaColorHandler {
     String higherx, lowerx, highery, lowery, higherz, lowerz;
     private Laserdome plugin;
     private Team teamA, teamB;
+    public int numShots = 0, numShrinks = 0;
 
     public ArenaColorHandler(Laserdome plugin, Team teamA, Team teamB) {
         this.plugin = plugin;
