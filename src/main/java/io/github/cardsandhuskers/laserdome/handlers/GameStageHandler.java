@@ -17,6 +17,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
 import static io.github.cardsandhuskers.laserdome.Laserdome.*;
 import static io.github.cardsandhuskers.teams.Teams.handler;
@@ -28,6 +29,7 @@ public class GameStageHandler {
     private ArenaColorHandler arenaColorHandler;
     private int numShrinks;
     private Countdown shrinkScheduler;
+    private boolean gameActive = false;
 
     public GameStageHandler(Laserdome plugin) {
         ArrayList<Team> teamList = handler.getPointsSortedList();
@@ -37,19 +39,21 @@ public class GameStageHandler {
     }
 
     public void startGame() {
+        arenaColorHandler = new ArenaColorHandler(plugin, teamA, teamB);
+
         plugin.getServer().getPluginManager().registerEvents(new PlayerAttackListener(teamA, teamB, this, plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerMoveListener(plugin, teamA, teamB, this), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new ArrowShootListener(plugin, teamA, teamB), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ArrowHitListener(plugin, teamA, teamB, arenaColorHandler, this), plugin);
         plugin.getServer().getPluginManager().registerEvents(new ArrowDestroyListener(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, teamA, teamB), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerLeaveListener(this, teamA, teamB), plugin);
 
-
-
-        arenaColorHandler = new ArenaColorHandler(plugin, teamA, teamB);
         arenaColorHandler.setColorBlocks();
 
         pregameTimer();
+    }
+    public boolean isGameActive() {
+        return gameActive;
     }
 
     public void pregameTimer() {
@@ -216,25 +220,26 @@ public class GameStageHandler {
     public void roundActive() {
         gameState = Laserdome.GameState.ROUND_ACTIVE;
         numShrinks = 0;
+        gameActive = true;
 
         shrinkScheduler = new Countdown(plugin,
                 60,
                 //Timer Start
                 () -> {
-
+                    //arrowCountdownHandler.startOperation();
                 },
 
                 //Timer End
                 () -> {
-
-
                 },
 
                 //Each Second
                 (t) -> {
                     //System.out.println(t.getSecondsLeft());
-
                     if((t.getSecondsLeft() % 15 == 0 && t.getSecondsLeft() != t.getTotalSeconds()) || t.getSecondsLeft() == 1) {
+
+
+/*
                         final int shrinks = numShrinks;
                         for(int i = 1; i <=6; i++) {
                             int finalI = i;
@@ -257,7 +262,16 @@ public class GameStageHandler {
                         },70L);
                         numShrinks++;
                         Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Arena is about to shrink. Watch out!");
+
+*/
+
+
+
                     }
+
+
+
+
                 }
         );
         shrinkScheduler.scheduleTimer();
@@ -287,9 +301,13 @@ public class GameStageHandler {
     }
 
     public void roundOver() {
+        gameActive = false;
         if(shrinkScheduler != null) {
             shrinkScheduler.cancelTimer();
         }
+        //arrowCountdownHandler.cancelOperation();
+        arenaColorHandler.numShrinks = 0;
+        arenaColorHandler.numShots = 0;
         gameState = GameState.ROUND_OVER;
         if(teamAWins == 3) {
             gameOver(teamA);
