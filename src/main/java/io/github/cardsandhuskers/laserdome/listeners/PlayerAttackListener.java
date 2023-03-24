@@ -55,6 +55,10 @@ public class PlayerAttackListener implements Listener {
         e.setCancelled(true);
     }
     public void sendMessages(Player attacker, Player attacked, Team attackedTeam) {
+        if(gameStageHandler.killsMap.containsKey(attacker)) gameStageHandler.killsMap.put(attacker, gameStageHandler.killsMap.get(attacker) + 1);
+        else gameStageHandler.killsMap.put(attacker, 1);
+
+
         attacked.setGameMode(GameMode.SPECTATOR);
 
         //maybe: delay so that drawn bow on death won't double send arrow DOES NOT WORK

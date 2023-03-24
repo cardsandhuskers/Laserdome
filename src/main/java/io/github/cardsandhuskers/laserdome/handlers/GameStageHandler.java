@@ -4,6 +4,9 @@ import io.github.cardsandhuskers.laserdome.Laserdome;
 import io.github.cardsandhuskers.laserdome.listeners.*;
 import io.github.cardsandhuskers.laserdome.objects.Countdown;
 import io.github.cardsandhuskers.teams.objects.Team;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -15,6 +18,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,11 +34,12 @@ public class GameStageHandler {
     private Team teamA, teamB, lastWinner;
     private ArenaColorHandler arenaColorHandler;
     private int numShrinks;
-    private Countdown shrinkScheduler;
     private boolean gameActive = false;
+    public HashMap<Player, Integer> killsMap;
 
     public GameStageHandler(Laserdome plugin) {
         ArrayList<Team> teamList = handler.getPointsSortedList();
+        killsMap = new HashMap<>();
         teamA = teamList.get(0);
         teamB = teamList.get(1);
         this.plugin = plugin;
@@ -221,60 +228,6 @@ public class GameStageHandler {
         gameState = Laserdome.GameState.ROUND_ACTIVE;
         numShrinks = 0;
         gameActive = true;
-
-        shrinkScheduler = new Countdown(plugin,
-                60,
-                //Timer Start
-                () -> {
-                    //arrowCountdownHandler.startOperation();
-                },
-
-                //Timer End
-                () -> {
-                },
-
-                //Each Second
-                (t) -> {
-                    //System.out.println(t.getSecondsLeft());
-                    if((t.getSecondsLeft() % 15 == 0 && t.getSecondsLeft() != t.getTotalSeconds()) || t.getSecondsLeft() == 1) {
-
-
-/*
-                        final int shrinks = numShrinks;
-                        for(int i = 1; i <=6; i++) {
-                            int finalI = i;
-                            Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, ()-> {
-                                if(finalI %2 == 0) {
-                                    arenaColorHandler.shrinkArena(Material.RED_STAINED_GLASS, shrinks);
-                                } else {
-                                    arenaColorHandler.shrinkArena(Material.YELLOW_STAINED_GLASS, shrinks);
-                                    for(Player p: Bukkit.getOnlinePlayers()) {
-                                        p.playSound(p.getLocation(), Sound.ENTITY_IRON_GOLEM_DAMAGE, 1, .5F);
-                                    }
-                                }
-                            },10L * i);
-                        }
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, ()-> {
-                            for(Player p: Bukkit.getOnlinePlayers()) {
-                                p.playSound(p.getLocation(), Sound.ENTITY_IRON_GOLEM_REPAIR, 1, .5F);
-                            }
-                            arenaColorHandler.shrinkArena(Material.AIR, shrinks);
-                        },70L);
-                        numShrinks++;
-                        Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Arena is about to shrink. Watch out!");
-
-*/
-
-
-
-                    }
-
-
-
-
-                }
-        );
-        shrinkScheduler.scheduleTimer();
     }
 
     public void postroundTimer() {
@@ -302,9 +255,10 @@ public class GameStageHandler {
 
     public void roundOver() {
         gameActive = false;
-        if(shrinkScheduler != null) {
-            shrinkScheduler.cancelTimer();
-        }
+        for(Player p:teamA.getOnlinePlayers()) p.getInventory().clear();
+        for(Player p:teamB.getOnlinePlayers()) p.getInventory().clear();
+
+
         //arrowCountdownHandler.cancelOperation();
         arenaColorHandler.numShrinks = 0;
         arenaColorHandler.numShots = 0;
@@ -412,10 +366,16 @@ public class GameStageHandler {
                     HandlerList.unregisterAll(plugin);
                     for(Player p:Bukkit.getOnlinePlayers()) {
                         p.teleport(plugin.getConfig().getLocation("Lobby"));
-                        //Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, ()->{
-                        //    p.setGameMode(GameMode.ADVENTURE);
-                        //},2);
                     }
+                    try {
+                        saveRecords();
+                    } catch (IOException e) {
+                        StackTraceElement[] trace = e.getStackTrace();
+                        String str = "";
+                        for(StackTraceElement element:trace) str += element.toString() + "\n";
+                        plugin.getLogger().severe("ERROR Calculating Stats!\n" + str);
+                    }
+
                 },
 
                 //Each Second
@@ -429,7 +389,7 @@ public class GameStageHandler {
                         }
                         Bukkit.broadcastMessage(winner.color + ChatColor.STRIKETHROUGH + "------------------------------");
                         Bukkit.broadcastMessage(winner.color + ChatColor.BOLD + winner.getTeamName() + ChatColor.RESET + " HAS WON THE MINECRAFT TOURNAMENT!");
-                        Bukkit.broadcastMessage(ChatColor.BOLD + "MEMBERS:");
+                        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.UNDERLINE + "\nMEMBERS:");
                         for(Player p:winner.getOnlinePlayers()) {
                             Bukkit.broadcastMessage(winner.color + ChatColor.BOLD + p.getName());
                         }
@@ -442,4 +402,46 @@ public class GameStageHandler {
         );
         gameOverTimer.scheduleTimer();
     }
+
+    public void saveRecords() throws IOException {
+        //for(Player p:killsMap.keySet()) if(p != null) System.out.println(p.getDisplayName() + ": " + killsMap.get(p));
+        //System.out.println("~~~~~~~~~~~~~~~");
+
+        FileWriter writer = new FileWriter(plugin.getDataFolder() + "/stats.csv", true);
+        FileReader reader = new FileReader(plugin.getDataFolder() + "/stats.csv");
+
+        String[] headers = {"Event", "Team", "Name", "Kills"};
+
+        CSVFormat.Builder builder = CSVFormat.Builder.create();
+        builder.setHeader(headers);
+        CSVFormat format = builder.build();
+
+        CSVParser parser = new CSVParser(reader, format);
+
+        if(!parser.getRecords().isEmpty()) {
+            format = CSVFormat.DEFAULT;
+        }
+
+        CSVPrinter printer = new CSVPrinter(writer, format);
+
+        int eventNum;
+        try {eventNum = Bukkit.getPluginManager().getPlugin("LobbyPlugin").getConfig().getInt("eventNum");} catch (Exception e) {eventNum = 1;}
+        //printer.printRecord(currentGame);
+        for(Player p:killsMap.keySet()) {
+            if(p == null) continue;
+            if(handler.getPlayerTeam(p) == null) continue;
+            printer.printRecord(eventNum, handler.getPlayerTeam(p).getTeamName(), p.getDisplayName(), killsMap.get(p));
+        }
+        writer.close();
+        try {
+            plugin.statCalculator.calculateStats();
+        } catch (Exception e) {
+            StackTraceElement[] trace = e.getStackTrace();
+            String str = "";
+            for(StackTraceElement element:trace) str += element.toString() + "\n";
+            plugin.getLogger().severe("ERROR Calculating Stats!\n" + str);
+        }
+
+    }
+
 }

@@ -2,12 +2,14 @@ package io.github.cardsandhuskers.laserdome;
 
 import io.github.cardsandhuskers.laserdome.commands.*;
 import io.github.cardsandhuskers.laserdome.objects.Placeholder;
+import io.github.cardsandhuskers.laserdome.objects.StatCalculator;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Laserdome extends JavaPlugin {
     public static int teamAWins = 0, teamBWins = 0, timeVar = 0;
     public static GameState gameState = GameState.GAME_STARTING;
+    public StatCalculator statCalculator;
     @Override
     public void onEnable() {
         // Plugin startup logic
@@ -35,6 +37,16 @@ public final class Laserdome extends JavaPlugin {
         getCommand("setLaserdomePos2").setExecutor(new SetPos2Command(this));
         getCommand("setLaserdomeArenaLoc1").setExecutor(new SetArenaCorner1Command(this));
         getCommand("setLaserdomeArenaLoc2").setExecutor(new SetArenaCorner2Command(this));
+
+        statCalculator = new StatCalculator(this);
+        try {
+            statCalculator.calculateStats();
+        } catch (Exception e) {
+            StackTraceElement[] trace = e.getStackTrace();
+            String str = "";
+            for(StackTraceElement element:trace) str += element.toString() + "\n";
+            this.getLogger().severe("ERROR Calculating Stats!\n" + str);
+        }
 
     }
 
