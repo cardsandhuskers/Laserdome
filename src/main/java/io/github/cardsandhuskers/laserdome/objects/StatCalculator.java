@@ -74,17 +74,21 @@ public class StatCalculator {
     }
 
     public ArrayList<PlayerStatsHolder> getStatsHolders() {
+        ArrayList<PlayerStatsHolder> psh = new ArrayList<>(playerStatsHolders);
+
         Comparator PlayerStatsCompare = new PlayerStatsComparator();
-        playerStatsHolders.sort(PlayerStatsCompare);
-        Collections.reverse(playerStatsHolders);
-        return new ArrayList<>(playerStatsHolders);
+        psh.sort(PlayerStatsCompare);
+        Collections.reverse(psh);
+        return psh;
     }
 
     public ArrayList<SingleGameKillsHolder> getSGKillsHolders() {
+        ArrayList<SingleGameKillsHolder> sgkh = new ArrayList<>(sgKillsHolders);
+
         Comparator SGKHComparator = new SGKHComparator();
-        sgKillsHolders.sort(SGKHComparator);
-        Collections.reverse(sgKillsHolders);
-        return new ArrayList<>(sgKillsHolders);
+        sgkh.sort(SGKHComparator);
+        Collections.reverse(sgkh);
+        return sgkh;
     }
 
 

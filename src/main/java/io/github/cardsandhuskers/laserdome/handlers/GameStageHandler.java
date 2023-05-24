@@ -97,7 +97,7 @@ public class GameStageHandler {
                                 "\nThey will spawn above the black targets on the arena. " +
                                 "\nOn round 1, one arrow will spawn on each platform. On other rounds, both arrows spawn on the side of the team that lost." +
                                 "\nDuring the rounds, each time a team shoots an arrow, one will spawn for the other team." +
-                                "\nOver time, the arena size will shrink, forcing players inward. Falling off the arena counts as a death.");
+                                "\nFor every 2 arrows shot, the arena will shrink by 2 blocks. Falling off the arena counts as a death.");
                         Bukkit.broadcastMessage(teamB.color + ChatColor.STRIKETHROUGH + "----------------------------------------");
                     }
                     if(t.getSecondsLeft() == t.getTotalSeconds() - 11) {

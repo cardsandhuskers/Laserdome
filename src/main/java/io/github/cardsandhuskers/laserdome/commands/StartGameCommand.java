@@ -19,13 +19,23 @@ public class StartGameCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (sender instanceof Player p && p.isOp()) {
+        if ((sender instanceof Player p && p.isOp())) {
             if (handler.getTeams().size() >= 2) {
                 GameStageHandler gameStageHandler = new GameStageHandler(plugin);
                 gameStageHandler.startGame();
                 return true;
             }
             p.sendMessage(ChatColor.RED + "ERROR: There must be at least 2 teams");
+            return true;
+        }
+        else if (sender instanceof Player p) {}
+        else {
+            if (handler.getTeams().size() >= 2) {
+                GameStageHandler gameStageHandler = new GameStageHandler(plugin);
+                gameStageHandler.startGame();
+                return true;
+            }
+            plugin.getLogger().warning(ChatColor.RED + "ERROR: There must be at least 2 teams");
             return true;
         }
         return false;

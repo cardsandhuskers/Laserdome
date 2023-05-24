@@ -24,12 +24,12 @@ public class PlayerJoinListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         Team team = handler.getPlayerTeam(e.getPlayer());
+        e.getPlayer().teleport(Bukkit.getPluginManager().getPlugin("Laserdome").getConfig().getLocation("SpectatorSpawn"));
+
         if(team == null) return;
         if(team.equals(teamA) || team.equals(teamB)) {
             Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("Laserdome"),
-                    ()-> e.getPlayer().setGameMode(GameMode.SPECTATOR), 5);
-
-        }
+                    ()-> e.getPlayer().setGameMode(GameMode.SPECTATOR), 5);}
     }
 
 }
