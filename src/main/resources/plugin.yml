@@ -4,6 +4,7 @@ main: io.github.cardsandhuskers.laserdome.Laserdome
 api-version: 1.19
 authors: [ cardsandhuskers ]
 description: Bow duels basically
+softdepend: [Multiverse-Core]
 commands:
   startLaserdome:
     description: starts the game
