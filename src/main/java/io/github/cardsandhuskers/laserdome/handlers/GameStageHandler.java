@@ -3,6 +3,7 @@ package io.github.cardsandhuskers.laserdome.handlers;
 import io.github.cardsandhuskers.laserdome.Laserdome;
 import io.github.cardsandhuskers.laserdome.listeners.*;
 import io.github.cardsandhuskers.laserdome.objects.Countdown;
+import io.github.cardsandhuskers.laserdome.objects.GameMessages;
 import io.github.cardsandhuskers.teams.objects.Team;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -79,6 +80,7 @@ public class GameStageHandler {
                         //inv.addItem(new ItemStack(Material.AIR));
                         p.setInvisible(false);
                     }
+
                 },
 
                 //Timer End
@@ -89,24 +91,9 @@ public class GameStageHandler {
                 //Each Second
                 (t) -> {
                     timeVar = t.getSecondsLeft();
-                    if(t.getSecondsLeft() == t.getTotalSeconds() - 1) {
-                        Bukkit.broadcastMessage(teamA.color + ChatColor.STRIKETHROUGH + "----------------------------------------");
-                        Bukkit.broadcastMessage(ChatColor.BOLD + "          Final Game:" + "\n        The Laserdome!");
-                        Bukkit.broadcastMessage(ChatColor.BLUE + "" + ChatColor.BOLD + "How To Play:");
-                        Bukkit.broadcastMessage("There are always two arrows in play." +
-                                "\nThey will spawn above the black targets on the arena. " +
-                                "\nOn round 1, one arrow will spawn on each platform. On other rounds, both arrows spawn on the side of the team that lost." +
-                                "\nDuring the rounds, each time a team shoots an arrow, one will spawn for the other team." +
-                                "\nFor every 2 arrows shot, the arena will shrink by 2 blocks. Falling off the arena counts as a death.");
-                        Bukkit.broadcastMessage(teamB.color + ChatColor.STRIKETHROUGH + "----------------------------------------");
-                    }
-                    if(t.getSecondsLeft() == t.getTotalSeconds() - 11) {
-                        Bukkit.broadcastMessage(teamA.color + ChatColor.STRIKETHROUGH + "----------------------------------------");
-                        Bukkit.broadcastMessage("This game will be a best of 5 rounds. First to 3 wins." +
-                                "\nThe first team to do that will be crowned the winner of the event." +
-                                "\nGood luck and may the best team win!");
-                        Bukkit.broadcastMessage(teamB.color + ChatColor.STRIKETHROUGH + "----------------------------------------");
-                    }
+                    if(t.getSecondsLeft() == t.getTotalSeconds() - 2) Bukkit.broadcastMessage(GameMessages.gameDescription(teamA.color, teamB.color));
+                    if(t.getSecondsLeft() == t.getTotalSeconds() - 12) Bukkit.broadcastMessage(GameMessages.winDescription(teamA.color, teamB.color));
+
                 }
         );
         pregameTimer.scheduleTimer();
@@ -387,13 +374,7 @@ public class GameStageHandler {
                             p.playSound(p.getLocation(), Sound.MUSIC_DISC_OTHERSIDE, 1, 1);
 
                         }
-                        Bukkit.broadcastMessage(winner.color + ChatColor.STRIKETHROUGH + "------------------------------");
-                        Bukkit.broadcastMessage(winner.color + ChatColor.BOLD + winner.getTeamName() + ChatColor.RESET + " HAS WON THE MINECRAFT TOURNAMENT!");
-                        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.UNDERLINE + "\nMEMBERS:");
-                        for(Player p:winner.getOnlinePlayers()) {
-                            Bukkit.broadcastMessage(winner.color + ChatColor.BOLD + p.getName());
-                        }
-                        Bukkit.broadcastMessage(winner.color + ChatColor.STRIKETHROUGH + "------------------------------");
+                        Bukkit.broadcastMessage(GameMessages.announceWinner(winner));
                     }
                     if(timeVar == t.getSecondsLeft() - 6) {
                         arenaColorHandler.rebuildFloor();
