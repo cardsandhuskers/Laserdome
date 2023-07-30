@@ -208,13 +208,13 @@ public class ArenaColorHandler {
             case "§3": return Material.CYAN_CONCRETE;
             case "§5": return Material.PURPLE_CONCRETE;
             case "§6": return Material.ORANGE_CONCRETE;
-            case "§7": return Material.LIGHT_GRAY_CONCRETE; //light gray
+            case "§7": return Material.LIGHT_GRAY_CONCRETE;
             case "§8": return Material.BLACK_CONCRETE;
             case "§9": return Material.BLUE_CONCRETE;
             case "§a": return Material.LIME_CONCRETE;
             case "§b": return Material.LIGHT_BLUE_CONCRETE;
             case "§c": return Material.RED_CONCRETE;
-            case "§d": return Material.MAGENTA_CONCRETE; //magenta
+            case "§d": return Material.PINK_CONCRETE;
             case "§e": return Material.YELLOW_CONCRETE;
             default: return Material.WHITE_CONCRETE;
         }

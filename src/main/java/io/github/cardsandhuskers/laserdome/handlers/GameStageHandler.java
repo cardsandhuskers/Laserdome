@@ -34,6 +34,7 @@ public class GameStageHandler {
     private int teamAPlayers, teamBPlayers;
     private Team teamA, teamB, lastWinner;
     private ArenaColorHandler arenaColorHandler;
+    private SpecBannerHandler specBannerHandler;
     private int numShrinks;
     private boolean gameActive = false;
     public HashMap<Player, Integer> killsMap;
@@ -48,6 +49,7 @@ public class GameStageHandler {
 
     public void startGame() {
         arenaColorHandler = new ArenaColorHandler(plugin, teamA, teamB);
+        specBannerHandler = new SpecBannerHandler(teamA, teamB);
 
         plugin.getServer().getPluginManager().registerEvents(new PlayerAttackListener(teamA, teamB, this, plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerMoveListener(plugin, teamA, teamB, this), plugin);
@@ -55,6 +57,7 @@ public class GameStageHandler {
         plugin.getServer().getPluginManager().registerEvents(new ArrowDestroyListener(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, teamA, teamB), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerLeaveListener(this, teamA, teamB), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new PlayerClickListener(specBannerHandler), plugin);
 
         arenaColorHandler.setColorBlocks();
 
@@ -79,6 +82,8 @@ public class GameStageHandler {
                         p.setGameMode(GameMode.ADVENTURE);
                         //inv.addItem(new ItemStack(Material.AIR));
                         p.setInvisible(false);
+
+                        specBannerHandler.giveBanners();
                     }
 
                 },
