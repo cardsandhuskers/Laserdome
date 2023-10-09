@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import static io.github.cardsandhuskers.laserdome.Laserdome.gameState;
@@ -68,6 +69,25 @@ public class PlayerMoveListener implements Listener {
                 gameStageHandler.onValidShot(playerTeam);
                 p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_AMBIENT, 1, 2);
                 p.setGameMode(GameMode.SPECTATOR);
+
+                ItemStack[] invContents = p.getInventory().getContents();
+                p.getInventory().clear();
+
+                for (ItemStack invContent : invContents) {
+                    if (invContent != null && invContent.getType() == Material.ARROW) {
+                        Location playerSpawn;
+                        Team team = handler.getPlayerTeam(p);
+                        if (team.equals(teamA)) {
+                            playerSpawn = plugin.getConfig().getLocation("TeamASpawn");
+                        } else {
+                            playerSpawn = plugin.getConfig().getLocation("TeamBSpawn");
+                        }
+                        Location arrowSpawn = new Location(playerSpawn.getWorld(), playerSpawn.getX(), playerSpawn.getY() + 3, playerSpawn.getZ());
+                        arrowSpawn.getWorld().dropItemNaturally(arrowSpawn, invContent);
+                        arrowSpawn.getWorld().spawnParticle(Particle.CLOUD, arrowSpawn, 40);
+                    }
+                }
+                Bukkit.broadcastMessage(playerTeam.color + p.getName() + ChatColor.RESET + " fell in lava.");
             }
         }
 

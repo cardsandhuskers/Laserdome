@@ -29,6 +29,10 @@ public final class Laserdome extends JavaPlugin {
             System.out.println("Could not find PlaceholderAPI! This plugin is required.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
+
+        getConfig().options().copyDefaults();
+        saveDefaultConfig();
+
         getCommand("startLaserdome").setExecutor(new StartGameCommand(this));
         getCommand("setLaserdomeLobby").setExecutor(new SetLobbyCommand(this));
         getCommand("setLaserdomeTeamSpawn").setExecutor(new SetTeamSpawnCommand(this));

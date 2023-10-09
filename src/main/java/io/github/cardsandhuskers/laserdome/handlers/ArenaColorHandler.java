@@ -232,7 +232,7 @@ public class ArenaColorHandler {
             case "§a": return Material.LIME_CARPET;
             case "§b": return Material.LIGHT_BLUE_CARPET;
             case "§c": return Material.RED_CARPET;
-            case "§d": return Material.MAGENTA_CARPET; //magenta
+            case "§d": return Material.PINK_CARPET; //magenta
             case "§e": return Material.YELLOW_CARPET;
             default: return Material.WHITE_CARPET;
         }
@@ -248,7 +248,7 @@ public class ArenaColorHandler {
             case BLACK_CONCRETE:
             case LIME_CONCRETE:
             case LIGHT_GRAY_CONCRETE:
-            case MAGENTA_CONCRETE:
+            case PINK_CONCRETE:
             case ORANGE_CONCRETE:
             case YELLOW_CONCRETE:
             case LIGHT_BLUE_CONCRETE:
@@ -268,7 +268,7 @@ public class ArenaColorHandler {
             case GRAY_CARPET:
             case LIME_CARPET:
             case LIGHT_GRAY_CARPET:
-            case MAGENTA_CARPET:
+            case PINK_CARPET:
             case ORANGE_CARPET:
             case YELLOW_CARPET:
             case LIGHT_BLUE_CARPET:
