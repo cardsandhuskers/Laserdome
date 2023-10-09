@@ -1,0 +1,11 @@
+#time before game will start
+PregameTime: 45
+#time before each round
+PreRoundTime: 10
+#time after each round ends
+PostRoundTime: 5
+#time after game is over before returning to lobby
+GameOverTime: 30
+
+#how far beneath the main arena is the "template" arena to swap with
+SpareArenaOffset: 14
