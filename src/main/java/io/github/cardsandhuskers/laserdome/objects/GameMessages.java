@@ -11,7 +11,7 @@ public class GameMessages {
         String GAME_DESCRIPTION =
                 aColor + ChatColor.STRIKETHROUGH + "----------------------------------------\n" + ChatColor.RESET +
                 ChatColor.BOLD + "          Final Game:" + "\n        The Laserdome!" +
-                ChatColor.BLUE + "" + ChatColor.BOLD + "\nHow To Play:" + ChatColor.RESET +
+                ChatColor.BLUE + ChatColor.BOLD + "\nHow To Play:" + ChatColor.RESET +
                 "\nThere are always two arrows in play." +
                 "\nThey will spawn above the black targets on the arena. " +
                 "\nOn round 1, one arrow will spawn on each platform. On other rounds, both arrows spawn on the side of the team that lost." +
@@ -39,7 +39,7 @@ public class GameMessages {
         String WINNER_MESSAGE =
                 winner.color + ChatColor.STRIKETHROUGH + "------------------------------\n" + ChatColor.RESET +
                 winner.color + ChatColor.BOLD + winner.getTeamName() + ChatColor.RESET + " HAS WON THE MINECRAFT TOURNAMENT!" +
-                ChatColor.BOLD + "" + ChatColor.UNDERLINE + "\n\nMEMBERS:";
+                ChatColor.BOLD + ChatColor.UNDERLINE + "\n\nMEMBERS:";
         for(Player p:winner.getOnlinePlayers()) {
             WINNER_MESSAGE += "\n" + winner.color + ChatColor.BOLD + p.getName();
         }

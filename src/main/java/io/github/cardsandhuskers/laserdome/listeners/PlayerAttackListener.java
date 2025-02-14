@@ -16,9 +16,10 @@ import static io.github.cardsandhuskers.teams.Teams.handler;
 import static org.bukkit.plugin.java.JavaPlugin.getPlugin;
 
 public class PlayerAttackListener implements Listener {
-    private Team teamA, teamB;
-    private GameStageHandler gameStageHandler;
-    private Laserdome plugin;
+    private final Team teamA;
+    private final Team teamB;
+    private final GameStageHandler gameStageHandler;
+    private final Laserdome plugin;
 
     public PlayerAttackListener(Team teamA, Team teamB, GameStageHandler gameStageHandler, Laserdome plugin) {
         this.plugin = plugin;

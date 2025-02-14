@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class SetTeamSpawnCommand implements CommandExecutor {
-    private Laserdome plugin;
+    private final Laserdome plugin;
     public SetTeamSpawnCommand(Laserdome plugin) {
         this.plugin = plugin;
     }
@@ -32,7 +32,7 @@ public class SetTeamSpawnCommand implements CommandExecutor {
 
                 plugin.getConfig().set("Team" + team.toUpperCase() + "Spawn", l);
                 plugin.saveConfig();
-                p.sendMessage("Location set to " + l.toString());
+                p.sendMessage("Location set to " + l);
 
             } else {
                 p.sendMessage(ChatColor.RED + "ERROR: Must specify either team A or B");

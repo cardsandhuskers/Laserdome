@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import static io.github.cardsandhuskers.teams.Teams.handler;
 
 public class StartGameCommand implements CommandExecutor {
-    private Laserdome plugin;
+    private final Laserdome plugin;
     public StartGameCommand(Laserdome plugin) {
         this.plugin = plugin;
     }

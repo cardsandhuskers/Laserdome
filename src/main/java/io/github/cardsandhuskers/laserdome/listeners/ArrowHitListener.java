@@ -15,10 +15,11 @@ import org.bukkit.inventory.ItemStack;
 import static io.github.cardsandhuskers.teams.Teams.handler;
 
 public class ArrowHitListener implements Listener {
-    private Laserdome plugin;
-    private Team teamA, teamB;
-    private ArenaColorHandler arenaColorHandler;
-    private GameStageHandler gameStageHandler;
+    private final Laserdome plugin;
+    private final Team teamA;
+    private final Team teamB;
+    private final ArenaColorHandler arenaColorHandler;
+    private final GameStageHandler gameStageHandler;
 
     public ArrowHitListener(Laserdome plugin, Team teamA, Team teamB, ArenaColorHandler arenaColorHandler, GameStageHandler gameStageHandler) {
         this.arenaColorHandler = arenaColorHandler;

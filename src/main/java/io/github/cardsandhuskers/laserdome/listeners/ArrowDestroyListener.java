@@ -10,9 +10,10 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class ArrowDestroyListener implements Listener {
-    private Laserdome plugin;
-    private Location teamASpawn, teamBSpawn;
-    private char centerLineAxis;
+    private final Laserdome plugin;
+    private final Location teamASpawn;
+    private final Location teamBSpawn;
+    private final char centerLineAxis;
 
     public ArrowDestroyListener(Laserdome plugin) {
         this.plugin = plugin;
@@ -30,7 +31,7 @@ public class ArrowDestroyListener implements Listener {
     }
     @EventHandler
     public void onArrowFall(EntityDamageEvent e) {
-        if(e.getEntity().getType() != EntityType.DROPPED_ITEM) {
+        if(e.getEntity().getType() != EntityType.ITEM) {
             return;
         }
         Item item = (Item) e.getEntity();

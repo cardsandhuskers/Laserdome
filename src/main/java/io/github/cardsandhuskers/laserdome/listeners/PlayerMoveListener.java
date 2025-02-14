@@ -15,11 +15,13 @@ import static io.github.cardsandhuskers.laserdome.Laserdome.gameState;
 import static io.github.cardsandhuskers.teams.Teams.handler;
 
 public class PlayerMoveListener implements Listener {
-    private char centerLineAxis;
-    private Laserdome plugin;
-    private Location teamASpawn, teamBSpawn;
-    private Team teamA, teamB;
-    private GameStageHandler gameStageHandler;
+    private final char centerLineAxis;
+    private final Laserdome plugin;
+    private final Location teamASpawn;
+    private final Location teamBSpawn;
+    private final Team teamA;
+    private final Team teamB;
+    private final GameStageHandler gameStageHandler;
     public PlayerMoveListener(Laserdome plugin, Team teamA, Team teamB, GameStageHandler gameStageHandler) {
         this.plugin = plugin;
         this.teamA = teamA;

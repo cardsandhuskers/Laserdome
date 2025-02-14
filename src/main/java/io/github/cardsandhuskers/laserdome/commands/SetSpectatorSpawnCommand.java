@@ -21,7 +21,7 @@ public class SetSpectatorSpawnCommand implements CommandExecutor {
             Location l = p.getLocation();
             plugin.getConfig().set("SpectatorSpawn", l);
             plugin.saveConfig();
-            p.sendMessage("Location set to " + l.toString());
+            p.sendMessage("Location set to " + l);
         } else if(sender instanceof Player p) {
             p.sendMessage(ChatColor.RED + "ERROR: You do not have sufficient permission to do this");
         } else {

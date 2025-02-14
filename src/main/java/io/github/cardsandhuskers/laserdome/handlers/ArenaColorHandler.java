@@ -11,8 +11,9 @@ import org.bukkit.entity.Player;
 public class ArenaColorHandler {
     private String higherWholex, lowerWholex, higherWholey, lowerWholey, higherWholez, lowerWholez;
     String higherx, lowerx, highery, lowery, higherz, lowerz;
-    private Laserdome plugin;
-    private Team teamA, teamB;
+    private final Laserdome plugin;
+    private final Team teamA;
+    private final Team teamB;
     public int numShots = 0, numShrinks = 0;
 
     public ArenaColorHandler(Laserdome plugin, Team teamA, Team teamB) {

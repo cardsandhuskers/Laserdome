@@ -11,8 +11,9 @@ import static io.github.cardsandhuskers.teams.Teams.handler;
 
 public class PlayerLeaveListener implements Listener {
 
-    private GameStageHandler gameStageHandler;
-    private Team teamA, teamB;
+    private final GameStageHandler gameStageHandler;
+    private final Team teamA;
+    private final Team teamB;
 
     public PlayerLeaveListener(GameStageHandler gameStageHandler, Team teamA, Team teamB) {
         this.gameStageHandler = gameStageHandler;

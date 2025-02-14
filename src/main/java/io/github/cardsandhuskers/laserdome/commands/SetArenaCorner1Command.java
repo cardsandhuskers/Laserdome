@@ -20,7 +20,7 @@ public class SetArenaCorner1Command implements CommandExecutor {
             Location location = p.getLocation();
             plugin.getConfig().set("arenaCorner1", location);
             plugin.saveConfig();
-            p.sendMessage("Corner 1 Set at: " + location.toString());
+            p.sendMessage("Corner 1 Set at: " + location);
         } else if(sender instanceof Player p) {
             p.sendMessage(ChatColor.RED + "ERROR: You do not have sufficient permission to do this");
         } else {
