@@ -1,6 +1,7 @@
 package io.github.cardsandhuskers.laserdome.listeners;
 
 import io.github.cardsandhuskers.laserdome.Laserdome;
+import io.github.cardsandhuskers.laserdome.objects.ArrowHolder;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -8,25 +9,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+
+import java.util.UUID;
 
 public class ArrowDestroyListener implements Listener {
     private final Laserdome plugin;
-    private final Location teamASpawn;
-    private final Location teamBSpawn;
-    private final char centerLineAxis;
+    ArrowHolder arrow1, arrow2;
 
-    public ArrowDestroyListener(Laserdome plugin) {
+    public ArrowDestroyListener(Laserdome plugin, ArrowHolder arrow1, ArrowHolder arrow2) {
         this.plugin = plugin;
-
-        teamASpawn = plugin.getConfig().getLocation("TeamASpawn");
-        teamBSpawn = plugin.getConfig().getLocation("TeamBSpawn");
-        int xDiff = Math.abs(teamASpawn.getBlockX() - teamBSpawn.getBlockX());
-        int zDiff = Math.abs(teamASpawn.getBlockZ() - teamBSpawn.getBlockZ());
-        if(xDiff > zDiff) {
-            centerLineAxis = 'z';
-        } else {
-            centerLineAxis = 'x';
-        }
+        this.arrow1 = arrow1;
+        this.arrow2 = arrow2;
 
     }
     @EventHandler
@@ -39,48 +34,20 @@ public class ArrowDestroyListener implements Listener {
             return;
         }
 
-        Location l = e.getEntity().getLocation();
-        Location sideOfArrow;
-        if(centerLineAxis == 'x') {
-            int centerLine = (teamASpawn.getBlockZ() + teamBSpawn.getBlockZ()) / 2;
-
-            //compare current location to center line based on side
-            if (teamASpawn.getZ() < centerLine) {
-                if (l.getZ() < centerLine) {
-                    sideOfArrow = teamASpawn;
-                } else {
-                    sideOfArrow = teamBSpawn;
-                }
-            } else {
-                if (l.getZ() < centerLine) {
-                    sideOfArrow = teamBSpawn;
-                } else {
-                    sideOfArrow = teamASpawn;
-                }
-            }
-        } else {
-            int centerLine = (teamASpawn.getBlockX() + teamBSpawn.getBlockX()) / 2;
-
-            //compare current location to center line based on side
-            if (teamASpawn.getX() < centerLine) {
-                if (l.getX() < centerLine) {
-                    sideOfArrow = teamASpawn;
-                } else {
-                    sideOfArrow = teamBSpawn;
-                }
-            } else {
-                if (l.getX() < centerLine) {
-                    sideOfArrow = teamBSpawn;
-                } else {
-                    sideOfArrow = teamASpawn;
-                }
-            }
-        }
         System.out.println("DROPPING ARROW");
         e.getEntity().remove();
-        Location dropLoc = new Location(sideOfArrow.getWorld(), sideOfArrow.getX(),sideOfArrow.getY() + 3, sideOfArrow.getZ());
-        dropLoc.getWorld().dropItemNaturally(dropLoc, new ItemStack(Material.ARROW));
-        dropLoc.getWorld().spawnParticle(Particle.CLOUD, dropLoc, 40);
 
+        ItemStack arrow = ((Item) e.getEntity()).getItemStack();
+        NamespacedKey key = new NamespacedKey(plugin, "ID");
+        ItemMeta meta = arrow.getItemMeta();
+        if (meta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+            String id = meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+
+            if (arrow1.getId().equals(UUID.fromString(id))) {
+                arrow1.resetArrow();
+            } else if (arrow2.getId().equals(UUID.fromString(id))) {
+                arrow2.resetArrow();
+            }
+        }
     }
 }

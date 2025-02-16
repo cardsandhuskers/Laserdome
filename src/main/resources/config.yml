@@ -7,5 +7,8 @@ PostRoundTime: 5
 #time after game is over before returning to lobby
 GameOverTime: 30
 
+#how long should a team be able to hold onto an arrow before they forfeit it
+ArrowTime: 20
+
 #how far beneath the main arena is the "template" arena to swap with
 SpareArenaOffset: 14

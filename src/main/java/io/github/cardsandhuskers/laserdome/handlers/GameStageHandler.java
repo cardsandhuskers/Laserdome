@@ -2,8 +2,10 @@ package io.github.cardsandhuskers.laserdome.handlers;
 
 import io.github.cardsandhuskers.laserdome.Laserdome;
 import io.github.cardsandhuskers.laserdome.listeners.*;
+import io.github.cardsandhuskers.laserdome.objects.ArrowHolder;
 import io.github.cardsandhuskers.laserdome.objects.Countdown;
 import io.github.cardsandhuskers.laserdome.objects.GameMessages;
+import io.github.cardsandhuskers.teams.handlers.TeamHandler;
 import io.github.cardsandhuskers.teams.objects.Team;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -32,17 +34,17 @@ import static io.github.cardsandhuskers.teams.Teams.handler;
 public class GameStageHandler {
     private final Laserdome plugin;
     private int teamAPlayers, teamBPlayers;
-    private final Team teamA;
-    private final Team teamB;
+    private final Team teamA, teamB;
     private Team lastWinner;
     private ArenaColorHandler arenaColorHandler;
     private SpecBannerHandler specBannerHandler;
-    private int numShrinks;
     private boolean gameActive = false;
     public HashMap<Player, Integer> killsMap;
 
+    private ArrowHolder arrowHolder1, arrowHolder2;
+
     public GameStageHandler(Laserdome plugin) {
-        ArrayList<Team> teamList = handler.getPointsSortedList();
+        ArrayList<Team> teamList = TeamHandler.getInstance().getPointsSortedList();
         killsMap = new HashMap<>();
         teamA = teamList.get(0);
         teamB = teamList.get(1);
@@ -53,10 +55,18 @@ public class GameStageHandler {
         arenaColorHandler = new ArenaColorHandler(plugin, teamA, teamB);
         specBannerHandler = new SpecBannerHandler(teamA, teamB);
 
-        plugin.getServer().getPluginManager().registerEvents(new PlayerAttackListener(teamA, teamB, this, plugin), plugin);
+        arrowHolder1 = new ArrowHolder(plugin, teamA, teamB, "Arrow 1");
+        arrowHolder2 = new ArrowHolder(plugin, teamA, teamB, "Arrow 2");
+
+        plugin.getServer().getPluginManager().registerEvents(new PlayerAttackListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerMoveListener(plugin, teamA, teamB, this), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new ArrowHitListener(plugin, teamA, teamB, arenaColorHandler, this), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new ArrowDestroyListener(plugin), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ArrowHitListener(plugin, teamA, teamB, arenaColorHandler, this, arrowHolder1, arrowHolder2), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ArrowDestroyListener(plugin, arrowHolder1, arrowHolder2), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ArrowShootListener(plugin, arrowHolder1, arrowHolder2), plugin);
+
+        plugin.getServer().getPluginManager().registerEvents(new PlayerThrowListener(plugin, arrowHolder1, arrowHolder2), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new PlayerPickUpItemListener(plugin, arrowHolder1, arrowHolder2), plugin);
+
         plugin.getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, teamA, teamB), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerLeaveListener(this, teamA, teamB), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerClickListener(specBannerHandler), plugin);
@@ -165,34 +175,24 @@ public class GameStageHandler {
                     timeVar = 0;
                     teamAPlayers = teamA.getOnlinePlayers().size();
                     teamBPlayers = teamB.getOnlinePlayers().size();
-                    roundActive();
+
+                    gameState = Laserdome.GameState.ROUND_ACTIVE;
+                    gameActive = true;
+
                     for(Player p:Bukkit.getOnlinePlayers()) {
                         p.sendTitle(">GO!<", "",5,10,5);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING,1,2);
                     }
                     if(teamAWins + teamBWins == 0) {
-                        Location test = plugin.getConfig().getLocation("TeamASpawn");
-                        Location l = new Location(test.getWorld(), test.getX(), test.getY() + 3, test.getZ());
-                        l.getWorld().dropItemNaturally(l, new ItemStack(Material.ARROW));
-                        l.getWorld().spawnParticle(Particle.CLOUD, l, 40);
-
-                        test = plugin.getConfig().getLocation("TeamBSpawn");
-                        l = new Location(test.getWorld(), test.getX(), test.getY() + 3, test.getZ());
-                        l.getWorld().dropItemNaturally(l, new ItemStack(Material.ARROW));
-                        l.getWorld().spawnParticle(Particle.CLOUD, l, 40);
+                        arrowHolder1.onRoundStart(teamA);
+                        arrowHolder2.onRoundStart(teamB);
 
                     } else if(lastWinner.equals(teamA)) {
-                        Location test = plugin.getConfig().getLocation("TeamBSpawn");
-                        Location l = new Location(test.getWorld(), test.getX(), test.getY() + 3, test.getZ());
-                        l.getWorld().dropItemNaturally(l, new ItemStack(Material.ARROW));
-                        l.getWorld().dropItemNaturally(l, new ItemStack(Material.ARROW));
-                        l.getWorld().spawnParticle(Particle.CLOUD, l, 40);
+                        arrowHolder1.onRoundStart(teamB);
+                        arrowHolder2.onRoundStart(teamB);
                     } else {
-                        Location test = plugin.getConfig().getLocation("TeamASpawn");
-                        Location l = new Location(test.getWorld(), test.getX(), test.getY() + 3, test.getZ());
-                        l.getWorld().dropItemNaturally(l, new ItemStack(Material.ARROW));
-                        l.getWorld().dropItemNaturally(l, new ItemStack(Material.ARROW));
-                        l.getWorld().spawnParticle(Particle.CLOUD, l, 40);
+                        arrowHolder1.onRoundStart(teamA);
+                        arrowHolder2.onRoundStart(teamA);
                     }
                 },
 
@@ -216,12 +216,6 @@ public class GameStageHandler {
                 }
         );
         preroundTimer.scheduleTimer();
-    }
-
-    public void roundActive() {
-        gameState = Laserdome.GameState.ROUND_ACTIVE;
-        numShrinks = 0;
-        gameActive = true;
     }
 
     public void postroundTimer() {
@@ -251,7 +245,8 @@ public class GameStageHandler {
         gameActive = false;
         for(Player p:teamA.getOnlinePlayers()) p.getInventory().clear();
         for(Player p:teamB.getOnlinePlayers()) p.getInventory().clear();
-
+        arrowHolder1.onRoundEnd();
+        arrowHolder2.onRoundEnd();
 
         //arrowCountdownHandler.cancelOperation();
         arenaColorHandler.numShrinks = 0;
@@ -268,7 +263,7 @@ public class GameStageHandler {
 
     /**
      *
-     * @param shotTeam
+     * @param shotTeam - team that was hit by the shot
      */
     public void onValidShot(Team shotTeam) {
         if(shotTeam.equals(teamA)) {
@@ -322,28 +317,20 @@ public class GameStageHandler {
                 fireworkMeta.addEffect(FireworkEffect.builder().withColor(winner.translateColor()).flicker(true).build());
                 firework1.setFireworkMeta(fireworkMeta);
 
-                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                    firework1.detonate();
-                }, 30L);
+                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, firework1::detonate, 30L);
 
 
                 Firework firework2 = (Firework) l2.getWorld().spawnEntity(l2, EntityType.FIREWORK_ROCKET);
                 firework2.setFireworkMeta(fireworkMeta);
-                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                    firework2.detonate();
-                }, 30L);
+                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, firework2::detonate, 30L);
 
                 Firework firework3 = (Firework) l3.getWorld().spawnEntity(l3, EntityType.FIREWORK_ROCKET);
                 firework3.setFireworkMeta(fireworkMeta);
-                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                    firework3.detonate();
-                }, 30L);
+                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, firework3::detonate, 30L);
 
                 Firework firework4 = (Firework) l4.getWorld().spawnEntity(l4, EntityType.FIREWORK_ROCKET);
                 firework4.setFireworkMeta(fireworkMeta);
-                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                    firework4.detonate();
-                }, 30L);
+                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, firework4::detonate, 30L);
 
             }, 20L * i);
         }//end fireworks
@@ -377,8 +364,9 @@ public class GameStageHandler {
                     timeVar = t.getSecondsLeft();
                     if(t.getSecondsLeft() == t.getTotalSeconds() - 1) {
                         for(Player p:Bukkit.getOnlinePlayers()) {
-                            p.sendTitle(winner.color + winner.getTeamName(), "HAS WON THE EVENT!",10,60,10);
-                            p.playSound(p.getLocation(), Sound.MUSIC_DISC_OTHERSIDE, 1, 1);
+                            p.sendTitle(winner.color + winner.getTeamName(), "HAS WON THE EVENT!",10,100,10);
+                            net.kyori.adventure.sound.Sound sound = net.kyori.adventure.sound.Sound.sound(Sound.MUSIC_DISC_PRECIPICE, net.kyori.adventure.sound.Sound.Source.PLAYER, 1f, 1f);
+                            p.playSound(sound, net.kyori.adventure.sound.Sound.Emitter.self());
 
                         }
                         Bukkit.broadcastMessage(GameMessages.announceWinner(winner));
