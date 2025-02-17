@@ -110,8 +110,6 @@ public class GameMessages {
     }
 
     public static Component getBorder(String colorStr) {
-        System.out.println(colorStr);
-        System.out.println(COLOR_MAP.get(colorStr));
         return Component.text("----------------------------------------").color(COLOR_MAP.get(colorStr)).decorate(TextDecoration.BOLD).decorate(TextDecoration.STRIKETHROUGH);
     }
 
