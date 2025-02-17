@@ -14,6 +14,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -169,48 +171,51 @@ public class ArrowHitListener implements Listener {
     }
 
     private void checkedTargetForArrows(Player target) {
-        ItemStack[] contents = target.getInventory().getStorageContents();
-        for(ItemStack stack: contents) {
-            if(stack != null && stack.getType() == Material.ARROW) {
-                NamespacedKey key = new NamespacedKey(plugin, "ID");
-                String id = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
 
-                if(arrow1.getId().equals(UUID.fromString(id))) {
-                    arrow1.resetArrowTimeAdd();
-                } else if (arrow2.getId().equals(UUID.fromString(id))) {
-                    arrow2.resetArrowTimeAdd();
-                }
+        //main inventory
+        ItemStack[] contents = target.getInventory().getStorageContents();
+        for(ItemStack item: contents) {
+            if(item != null && item.getType() == Material.ARROW) {
+                if(checkForMatch(item, arrow1.getId())) arrow1.resetArrowAddTime();
+                else if (checkForMatch(item, arrow2.getId())) arrow2.resetArrowAddTime();
             }
         }
+        //in cursor
         ItemStack cursorStack = target.getOpenInventory().getCursor();
         if(cursorStack.getType() == Material.ARROW) {
-            ItemMeta arrowMeta = cursorStack.getItemMeta();
-            NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
-            String id = arrowMeta.getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
-            if(id != null) {
-                if(arrow1.getId().equals(UUID.fromString(id))) {
-                    arrow1.resetArrowTimeAdd();
-                } else if (arrow2.getId().equals(UUID.fromString(id))) {
-                    arrow2.resetArrowTimeAdd();
+            if(checkForMatch(cursorStack, arrow1.getId())) arrow1.resetArrowAddTime();
+            else if (checkForMatch(cursorStack, arrow2.getId())) arrow2.resetArrowAddTime();
+        }
+        //crafting grid
+        Inventory topInventory = target.getOpenInventory().getTopInventory();
+        if (topInventory instanceof CraftingInventory craftingInventory) {
+            ItemStack[] craftingContents = craftingInventory.getMatrix();
+            for (int i = 0; i < craftingContents.length; i++) {
+                ItemStack item = craftingContents[i];
+                if (item != null && item.getType() == Material.ARROW) {
+                    if(checkForMatch(item, arrow1.getId())) arrow1.resetArrowAddTime();
+                    else if (checkForMatch(item, arrow2.getId())) arrow2.resetArrowAddTime();
                 }
             }
+            craftingInventory.setMatrix(craftingContents);
         }
-        ItemStack[] craftingContents = target.getOpenInventory().getTopInventory().getContents();
-        for(ItemStack item: craftingContents) {
-            if(item != null && item.getType() == Material.ARROW) {
-                ItemMeta arrowMeta = item.getItemMeta();
-                NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
-                String id = arrowMeta.getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
-                if(id != null) {
-                    if(arrow1.getId().equals(UUID.fromString(id))) {
-                        arrow1.resetArrowTimeAdd();
-                    } else if (arrow2.getId().equals(UUID.fromString(id))) {
-                        arrow2.resetArrowTimeAdd();
-                    }
-                }
-            }
+        //offhand
+        ItemStack offHandItem = target.getInventory().getItemInOffHand();
+        if(offHandItem.getType() == Material.ARROW) {
+            if(checkForMatch(offHandItem, arrow1.getId())) arrow1.resetArrowAddTime();
+            else if (checkForMatch(offHandItem, arrow2.getId())) arrow2.resetArrowAddTime();
         }
-
         target.getInventory().clear();
+    }
+
+    private boolean checkForMatch(ItemStack item, UUID id) {
+        ItemMeta arrowMeta = item.getItemMeta();
+        NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
+        String idString = arrowMeta.getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
+        if(idString != null) {
+            //this is the right arrow
+            return UUID.fromString(idString).equals(id);
+        }
+        return false;
     }
 }

@@ -85,7 +85,7 @@ public class ArrowHolder implements Runnable{
         arrowSpawn.getWorld().spawnParticle(Particle.CLOUD, arrowSpawn, 40);
     }
 
-    public void resetArrowTimeAdd() {
+    public void resetArrowAddTime() {
         Location arrowSpawn;
         if(holdingTeam == teamA) arrowSpawn = teamAArrowSpawn;
         else arrowSpawn = teamBArrowSpawn;
@@ -284,9 +284,5 @@ public class ArrowHolder implements Runnable{
 
     public UUID getId() {
         return id;
-    }
-
-    public Team getHoldingTeam() {
-        return holdingTeam;
     }
 }
