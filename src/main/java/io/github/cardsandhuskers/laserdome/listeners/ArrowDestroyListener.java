@@ -14,9 +14,12 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.UUID;
 
+/**
+ * Handles the case where an arrow item ends up dropped in lava.
+ */
 public class ArrowDestroyListener implements Listener {
     private final Laserdome plugin;
-    ArrowHolder arrow1, arrow2;
+    private final ArrowHolder arrow1, arrow2;
 
     public ArrowDestroyListener(Laserdome plugin, ArrowHolder arrow1, ArrowHolder arrow2) {
         this.plugin = plugin;
@@ -25,7 +28,7 @@ public class ArrowDestroyListener implements Listener {
 
     }
     @EventHandler
-    public void onArrowFall(EntityDamageEvent e) {
+    public void onArrowDestroy(EntityDamageEvent e) {
         if(e.getEntity().getType() != EntityType.ITEM) {
             return;
         }
@@ -34,7 +37,6 @@ public class ArrowDestroyListener implements Listener {
             return;
         }
 
-        System.out.println("DROPPING ARROW");
         e.getEntity().remove();
 
         ItemStack arrow = ((Item) e.getEntity()).getItemStack();

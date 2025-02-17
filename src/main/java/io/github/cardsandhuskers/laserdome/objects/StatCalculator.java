@@ -100,7 +100,7 @@ public class StatCalculator {
         }
     }
 
-    class PlayerStatsComparator implements Comparator<PlayerStatsHolder> {
+    public class PlayerStatsComparator implements Comparator<PlayerStatsHolder> {
         public int compare(PlayerStatsHolder h1, PlayerStatsHolder h2) {
             int compare = Integer.compare(h1.kills, h2.kills);
             if(compare == 0) h1.name.compareTo(h2.name);
@@ -114,7 +114,7 @@ public class StatCalculator {
         int eventNum;
         int kills;
     }
-    class SGKHComparator implements Comparator<SingleGameKillsHolder> {
+    public class SGKHComparator implements Comparator<SingleGameKillsHolder> {
         public int compare(SingleGameKillsHolder kh1, SingleGameKillsHolder kh2) {
             int compare = Integer.compare(kh1.kills, kh2.kills);
             if(compare == 0) compare = kh1.name.compareTo(kh2.name);

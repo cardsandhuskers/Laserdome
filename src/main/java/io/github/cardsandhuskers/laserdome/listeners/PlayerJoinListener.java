@@ -1,14 +1,13 @@
 package io.github.cardsandhuskers.laserdome.listeners;
 
 import io.github.cardsandhuskers.laserdome.handlers.GameStageHandler;
+import io.github.cardsandhuskers.teams.handlers.TeamHandler;
 import io.github.cardsandhuskers.teams.objects.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-
-import static io.github.cardsandhuskers.teams.Teams.handler;
 
 public class PlayerJoinListener implements Listener {
 
@@ -24,7 +23,7 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        Team team = handler.getPlayerTeam(e.getPlayer());
+        Team team = TeamHandler.getInstance().getPlayerTeam(e.getPlayer());
         e.getPlayer().teleport(Bukkit.getPluginManager().getPlugin("Laserdome").getConfig().getLocation("SpectatorSpawn"));
 
         if(team == null) return;

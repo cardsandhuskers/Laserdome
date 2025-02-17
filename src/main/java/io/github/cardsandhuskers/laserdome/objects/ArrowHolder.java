@@ -10,6 +10,8 @@ import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -71,10 +73,26 @@ public class ArrowHolder implements Runnable{
 
     }
 
+    /**
+     * Resets the arrow back to the spawn of the team that currently has it
+     */
     public void resetArrow() {
         Location arrowSpawn;
         if(holdingTeam == teamA) arrowSpawn = teamAArrowSpawn;
         else arrowSpawn = teamBArrowSpawn;
+
+        arrowSpawn.getWorld().dropItemNaturally(arrowSpawn, createArrowItem());
+        arrowSpawn.getWorld().spawnParticle(Particle.CLOUD, arrowSpawn, 40);
+    }
+
+    public void resetArrowTimeAdd() {
+        Location arrowSpawn;
+        if(holdingTeam == teamA) arrowSpawn = teamAArrowSpawn;
+        else arrowSpawn = teamBArrowSpawn;
+
+        System.out.println("Held Time: " + heldTime);
+        if(heldTime >= arrowTime / 2) heldTime = arrowTime / 2;
+        else heldTime = 0;
 
         arrowSpawn.getWorld().dropItemNaturally(arrowSpawn, createArrowItem());
         arrowSpawn.getWorld().spawnParticle(Particle.CLOUD, arrowSpawn, 40);
@@ -104,8 +122,12 @@ public class ArrowHolder implements Runnable{
     }
 
     public void onRoundStart(Team arrowTeam) {
-        if(arrowTeam == teamA) spawnArrow(arrowTeam);
-        else if (arrowTeam == teamB) spawnArrow(arrowTeam);
+        if(arrowTeam == teamA) {
+            spawnArrow(arrowTeam);
+        }
+        else if (arrowTeam == teamB) {
+            spawnArrow(arrowTeam);
+        }
 
         startOperation();
     }
@@ -123,35 +145,53 @@ public class ArrowHolder implements Runnable{
             for(Entity e: teamAArrowSpawn.getWorld().getEntities()) {
                 if(e instanceof Item i) {
                     if(i.getItemStack().getType() == Material.ARROW) {
-                        ItemMeta arrowMeta = i.getItemStack().getItemMeta();
-                        NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
-                        String idString = arrowMeta.getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
-                        if(idString != null) {
-                            if(UUID.fromString(idString).equals(id)) {
-                                //this is the right arrow
-                                i.remove();
-                            }
-                        }
+                        if (checkForMatch(i.getItemStack())) i.remove();
                     }
                 }
             }
 
         } else if (arrowState == ArrowState.IN_INVENTORY) {
+            //main inventory
             ItemStack[] contents = holdingPlayer.getInventory().getStorageContents();
             for(ItemStack item: contents) {
                 if(item != null && item.getType() == Material.ARROW) {
-                    ItemMeta arrowMeta = item.getItemMeta();
-                    NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
-                    String idString = arrowMeta.getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
-                    if(idString != null) {
-                        if(UUID.fromString(idString).equals(id)) {
-                            //this is the right arrow
-                            holdingPlayer.getInventory().remove(item);
-                        }
-                    }
+                    if(checkForMatch(item)) holdingPlayer.getInventory().remove(item);
                 }
             }
+            //in cursor
+            ItemStack cursorStack = holdingPlayer.getOpenInventory().getCursor();
+            if(cursorStack.getType() == Material.ARROW) {
+                if(checkForMatch(cursorStack)) holdingPlayer.getOpenInventory().setCursor(new ItemStack(Material.AIR));
+            }
+            //crafting grid
+            Inventory topInventory = holdingPlayer.getOpenInventory().getTopInventory();
+            if (topInventory instanceof CraftingInventory craftingInventory) {
+                ItemStack[] craftingContents = craftingInventory.getMatrix();
+                for (int i = 0; i < craftingContents.length; i++) {
+                    ItemStack item = craftingContents[i];
+                    if (item != null && item.getType() == Material.ARROW) {
+                        if (checkForMatch(item)) craftingContents[i] = null;
+                    }
+                }
+                craftingInventory.setMatrix(craftingContents);
+            }
+            //offhand
+            ItemStack offHandItem = holdingPlayer.getInventory().getItemInOffHand();
+            if(offHandItem.getType() == Material.ARROW) {
+                if(checkForMatch(offHandItem)) holdingPlayer.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+            }
         }
+    }
+
+    private boolean checkForMatch(ItemStack item) {
+        ItemMeta arrowMeta = item.getItemMeta();
+        NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
+        String idString = arrowMeta.getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
+        if(idString != null) {
+            //this is the right arrow
+            return UUID.fromString(idString).equals(id);
+        }
+        return false;
     }
 
     public void run() {
@@ -171,16 +211,21 @@ public class ArrowHolder implements Runnable{
         if(heldTime >= arrowTime) {
             //if they've shot it, don't do anything, just needs to 'leave hand' on time, not land
             if(arrowState != ArrowState.IN_AIR) {
-                removeArrow();
-                //reset arrow to other team
-                if(holdingTeam == teamA) spawnArrow(teamB);
-                else if (holdingTeam == teamB) spawnArrow(teamA);
-
                 Component message = Component.text("You held " + name + " for too long.");
                 for(Player p: holdingTeam.getOnlinePlayers()) {
                     p.sendMessage(message);
                     p.playSound(p, Sound.ENTITY_WOLF_DEATH, 1, .5f);
                 }
+
+                removeArrow();
+                //reset arrow to other team
+                if(holdingTeam == teamA) {
+                    spawnArrow(teamB);
+                }
+                else if (holdingTeam == teamB) {
+                    spawnArrow(teamA);
+                }
+
             }
         }
     }
@@ -214,16 +259,6 @@ public class ArrowHolder implements Runnable{
         arrowItem.setItemMeta(arrowMeta);
 
         return arrowItem;
-    }
-
-    /**
-     * Transfers UUID to arrow when in entity form, works for shot arrow or dropped item
-     * @param droppedItem - item to put UUID into
-     */
-    public void transferTagToEntity(Entity droppedItem) {
-        PersistentDataContainer entityContainer = droppedItem.getPersistentDataContainer();
-        NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
-        entityContainer.set(namespacedKey, PersistentDataType.STRING, id.toString());
     }
 
     /**

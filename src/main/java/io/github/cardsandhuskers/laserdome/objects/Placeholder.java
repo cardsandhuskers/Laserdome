@@ -2,6 +2,7 @@ package io.github.cardsandhuskers.laserdome.objects;
 
 
 import io.github.cardsandhuskers.laserdome.Laserdome;
+import io.github.cardsandhuskers.teams.handlers.TeamHandler;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,7 +11,6 @@ import org.bukkit.OfflinePlayer;
 import java.util.ArrayList;
 
 import static io.github.cardsandhuskers.laserdome.Laserdome.*;
-import static io.github.cardsandhuskers.teams.Teams.handler;
 
 
 public class Placeholder extends PlaceholderExpansion {
@@ -88,8 +88,8 @@ public class Placeholder extends PlaceholderExpansion {
                 StatCalculator.SingleGameKillsHolder holder = killsHolders.get(Integer.parseInt(values[1]) - 1);
 
                 String color = "";
-                if (handler.getPlayerTeam(Bukkit.getPlayer(holder.name)) != null)
-                    color = handler.getPlayerTeam(Bukkit.getPlayer(holder.name)).color;
+                if (TeamHandler.getInstance().getPlayerTeam(Bukkit.getPlayer(holder.name)) != null)
+                    color = TeamHandler.getInstance().getPlayerTeam(Bukkit.getPlayer(holder.name)).color;
                 return color + holder.name + ChatColor.RESET + " Event " + holder.eventNum + ": " + holder.kills;
 
 
@@ -100,8 +100,8 @@ public class Placeholder extends PlaceholderExpansion {
                 if(Integer.parseInt(values[1]) > killsHolders.size()) return  "";
                 StatCalculator.PlayerStatsHolder holder = killsHolders.get(Integer.parseInt(values[1]) - 1);
                 String color = "";
-                if (handler.getPlayerTeam(Bukkit.getPlayer(holder.name)) != null)
-                    color = handler.getPlayerTeam(Bukkit.getPlayer(holder.name)).color;
+                if (TeamHandler.getInstance().getPlayerTeam(Bukkit.getPlayer(holder.name)) != null)
+                    color = TeamHandler.getInstance().getPlayerTeam(Bukkit.getPlayer(holder.name)).color;
                 return color + holder.name + ChatColor.RESET + ": " + holder.kills;
             }
         } catch (Exception e) {

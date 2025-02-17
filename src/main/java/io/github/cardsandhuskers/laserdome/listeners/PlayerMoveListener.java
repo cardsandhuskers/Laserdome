@@ -2,6 +2,7 @@ package io.github.cardsandhuskers.laserdome.listeners;
 
 import io.github.cardsandhuskers.laserdome.Laserdome;
 import io.github.cardsandhuskers.laserdome.handlers.GameStageHandler;
+import io.github.cardsandhuskers.teams.handlers.TeamHandler;
 import io.github.cardsandhuskers.teams.objects.Team;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -9,10 +10,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import static io.github.cardsandhuskers.laserdome.Laserdome.gameState;
-import static io.github.cardsandhuskers.teams.Teams.handler;
 
 public class PlayerMoveListener implements Listener {
     private final char centerLineAxis;
@@ -42,7 +41,7 @@ public class PlayerMoveListener implements Listener {
     public void onPlayerMove(PlayerMoveEvent e) {
         Player p = e.getPlayer();
         Location l = p.getLocation();
-        Team playerTeam = handler.getPlayerTeam(p);
+        Team playerTeam = TeamHandler.getInstance().getPlayerTeam(p);
         if(playerTeam == null || (!playerTeam.equals(teamA) && !playerTeam.equals(teamB))) {
             return;
         }
@@ -78,7 +77,7 @@ public class PlayerMoveListener implements Listener {
                 for (ItemStack invContent : invContents) {
                     if (invContent != null && invContent.getType() == Material.ARROW) {
                         Location playerSpawn;
-                        Team team = handler.getPlayerTeam(p);
+                        Team team = TeamHandler.getInstance().getPlayerTeam(p);
                         if (team.equals(teamA)) {
                             playerSpawn = plugin.getConfig().getLocation("TeamASpawn");
                         } else {

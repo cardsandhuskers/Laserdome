@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 public class GameMessages {
 
-    public static String gameDescription(String aColor, String bColor) {
+    public static String gameDescription(String aColor, String bColor, int shootTime) {
         String GAME_DESCRIPTION =
                 aColor + ChatColor.STRIKETHROUGH + "----------------------------------------\n" + ChatColor.RESET +
                 ChatColor.BOLD + "          Final Game:" + "\n        The Laserdome!" +
@@ -16,6 +16,7 @@ public class GameMessages {
                 "\nThey will spawn above the black targets on the arena. " +
                 "\nOn round 1, one arrow will spawn on each platform. On other rounds, both arrows spawn on the side of the team that lost." +
                 "\nDuring the rounds, each time a team shoots an arrow, one will spawn for the other team." +
+                "\nWhen an arrow spawns on your half, you will have " + ChatColor.GOLD + ChatColor.BOLD + shootTime + ChatColor.RESET + " seconds to shoot the arrow." +
                 "\nFor every 2 arrows shot, the arena will shrink by 2 blocks. Falling off the arena counts as a death.\n" +
                 bColor + ChatColor.STRIKETHROUGH + "----------------------------------------";
         return GAME_DESCRIPTION;

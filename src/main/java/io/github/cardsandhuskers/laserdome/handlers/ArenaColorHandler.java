@@ -2,11 +2,9 @@ package io.github.cardsandhuskers.laserdome.handlers;
 
 import io.github.cardsandhuskers.laserdome.Laserdome;
 import io.github.cardsandhuskers.teams.objects.Team;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 public class ArenaColorHandler {
     private String higherWholex, lowerWholex, higherWholey, lowerWholey, higherWholez, lowerWholez;

@@ -4,6 +4,7 @@ import io.github.cardsandhuskers.laserdome.Laserdome;
 import io.github.cardsandhuskers.laserdome.handlers.ArenaColorHandler;
 import io.github.cardsandhuskers.laserdome.handlers.GameStageHandler;
 import io.github.cardsandhuskers.laserdome.objects.ArrowHolder;
+import io.github.cardsandhuskers.laserdome.objects.stats.Stats;
 import io.github.cardsandhuskers.teams.handlers.TeamHandler;
 import io.github.cardsandhuskers.teams.objects.Team;
 import org.bukkit.*;
@@ -14,21 +15,27 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.UUID;
 
-import static io.github.cardsandhuskers.teams.Teams.handler;
+import static io.github.cardsandhuskers.laserdome.Laserdome.teamAWins;
+import static io.github.cardsandhuskers.laserdome.Laserdome.teamBWins;
 
+/**
+ * Handles the case when an arrow hits something, either another player or the wall/floor
+ */
 public class ArrowHitListener implements Listener {
     private final Laserdome plugin;
     private final Team teamA;
     private final Team teamB;
     private final ArenaColorHandler arenaColorHandler;
     private final GameStageHandler gameStageHandler;
-    ArrowHolder arrow1, arrow2;
+    private final ArrowHolder arrow1, arrow2;
+    private final Stats stats;
 
-    public ArrowHitListener(Laserdome plugin, Team teamA, Team teamB, ArenaColorHandler arenaColorHandler, GameStageHandler gameStageHandler, ArrowHolder arrow1, ArrowHolder arrow2) {
+    public ArrowHitListener(Laserdome plugin, Team teamA, Team teamB, ArenaColorHandler arenaColorHandler, GameStageHandler gameStageHandler, ArrowHolder arrow1, ArrowHolder arrow2, Stats stats) {
         this.arenaColorHandler = arenaColorHandler;
         this.plugin = plugin;
         this.teamA = teamA;
@@ -36,21 +43,27 @@ public class ArrowHitListener implements Listener {
         this.gameStageHandler = gameStageHandler;
         this.arrow1 = arrow1;
         this.arrow2 = arrow2;
+        this.stats = stats;
     }
     @EventHandler
     public void onArrowHit(ProjectileHitEvent e) {
+
         if(e.getEntity().getType() != EntityType.ARROW) {
             return;
         }
         if(e.getEntity().getShooter() instanceof Player attacker) {
-            Team attackerTeam = handler.getPlayerTeam(attacker);
+            Team attackerTeam = TeamHandler.getInstance().getPlayerTeam(attacker);
             Arrow arrow = (Arrow)e.getEntity();
             NamespacedKey key = new NamespacedKey(plugin, "ID");
             String id = arrow.getPersistentDataContainer().get(key, PersistentDataType.STRING);
             if(id == null) {
-                System.out.println("ID IS NULL");
+                //System.out.println("ID IS NULL");
                 return;
             }
+
+            //shrink attempt before hit is confirmed
+            arenaColorHandler.numShots++;
+            if(arenaColorHandler.numShots %2 == 0) shrinkArena();
 
             //hit wall
             if(e.getHitBlock() != null) {
@@ -61,50 +74,51 @@ public class ArrowHitListener implements Listener {
                     arrow2.onArrowHit();
                 }
                 e.getEntity().remove();
+                stats.addEntry( (teamAWins + teamBWins + 1) + "," + attacker.getName() + "," + attackerTeam.getTeamName() + ",MISS,NONE,NONE");
 
             } else if(e.getHitEntity() != null && e.getHitEntity() instanceof Player target) {
-                System.out.println("HIT PLAYER");
                 //hit!
                 Team targetTeam = TeamHandler.getInstance().getPlayerTeam(target);
                 if (attackerTeam != targetTeam) {
-
-                    if (arrow1.getId().equals(UUID.fromString(id))) {
-                        arrow1.onArrowHit();
-                    } else if (arrow2.getId().equals(UUID.fromString(id))) {
-                        arrow2.onArrowHit();
-                    }
+                    //System.out.println("Shot Opponent");
+                    stats.addEntry((teamAWins + teamBWins + 1) + "," + attacker.getName() + "," + attackerTeam.getTeamName() + ",HIT," + target.getName() + "," + targetTeam.getTeamName());
 
                     if (attackerTeam == teamA && targetTeam == teamB) {
                         //valid shot has hit target
                         gameStageHandler.onValidShot(teamB);
-                        sendMessages(attacker, target, teamB);
+                        sendMessages(attacker, target);
                     }
-                    if (attackerTeam == teamB && targetTeam == teamA) {
+                    else if (attackerTeam == teamB && targetTeam == teamA) {
                         //valid shot has hit target
                         gameStageHandler.onValidShot(teamA);
-                        sendMessages(attacker, target, teamA);
+                        sendMessages(attacker, target);
                     }
+                    checkedTargetForArrows(target);
 
-                    e.setCancelled(true);
                 } else {
+                    //System.out.println("Shot Teammate");
                     //friendly fire!
-                    if (arrow1.getId().equals(UUID.fromString(id))) {
-                        arrow1.onArrowHit();
-                    } else if (arrow2.getId().equals(UUID.fromString(id))) {
-                        arrow2.onArrowHit();
-                    }
-                    e.setCancelled(true);
 
+                    stats.addEntry((teamAWins + teamBWins + 1) + "," + attacker.getName() + "," + attackerTeam.getTeamName() + ",MISS,NONE,NONE");
                 }
-            } else {
-                System.out.println("HIT SOMETHING ELSE");
+
+                if (arrow1.getId().equals(UUID.fromString(id))) {
+                    arrow1.onArrowHit();
+                } else if (arrow2.getId().equals(UUID.fromString(id))) {
+                    arrow2.onArrowHit();
+                }
+                e.setCancelled(true);
+                e.getEntity().remove();
             }
         }
 
-        arenaColorHandler.numShots++;
-        if(arenaColorHandler.numShots %2 == 0) shrinkArena();
+        System.out.println("num shots before increment: " + arenaColorHandler.numShots);
+
     }
 
+    /**
+     * Shrinks the arena after 2 arrows have been shot
+     */
     private void shrinkArena() {
         if(arenaColorHandler.numShrinks >= 4) return;
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, ()-> {
@@ -134,41 +148,72 @@ public class ArrowHitListener implements Listener {
         }, 60L);
     }
 
-    private void sendMessages(Player attacker, Player attacked, Team attackedTeam) {
+    /**
+     * Sends messages when someone is shot
+     * @param attacker - person who did the shooting
+     * @param attacked - person who was shot
+     */
+    private void sendMessages(Player attacker, Player attacked) {
         if(gameStageHandler.killsMap.containsKey(attacker)) gameStageHandler.killsMap.put(attacker, gameStageHandler.killsMap.get(attacker) + 1);
         else gameStageHandler.killsMap.put(attacker, 1);
 
-
         attacked.setGameMode(GameMode.SPECTATOR);
-
-        //maybe: delay so that drawn bow on death won't double send arrow DOES NOT WORK
-        //can still shoot after being put in spec, that's the issue
-        ItemStack[] invContents = attacked.getInventory().getContents();
-        attacked.getInventory().clear();
-
-        for (ItemStack invContent : invContents) {
-            if (invContent != null && invContent.getType() == Material.ARROW) {
-                Location l;
-                if (attackedTeam.equals(teamA)) {
-                    l = plugin.getConfig().getLocation("TeamASpawn");
-                } else {
-                    l = plugin.getConfig().getLocation("TeamBSpawn");
-                }
-                Location arrowSpawn = new Location(l.getWorld(), l.getX(), l.getY() + 3, l.getZ());
-                arrowSpawn.getWorld().dropItemNaturally(arrowSpawn, invContent);
-                arrowSpawn.getWorld().spawnParticle(Particle.CLOUD, arrowSpawn, 40);
-            }
-        }
 
         attacker.playSound(attacker.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1,1);
         attacked.playSound(attacked.getLocation(), Sound.ENTITY_ENDER_DRAGON_AMBIENT,1,2);
-        attacker.sendMessage("You shot " + handler.getPlayerTeam(attacked).color + attacked.getName() + ChatColor.RESET + "!");
-        attacked.sendMessage("You were shot by " + handler.getPlayerTeam(attacker).color + attacker.getName() + ChatColor.RESET + ".");
+        attacker.sendMessage("You shot " + TeamHandler.getInstance().getPlayerTeam(attacked).color + attacked.getName() + ChatColor.RESET + "!");
+        attacked.sendMessage("You were shot by " + TeamHandler.getInstance().getPlayerTeam(attacker).color + attacker.getName() + ChatColor.RESET + ".");
         for(Player p: Bukkit.getOnlinePlayers()) {
             if(!p.equals(attacked) && !p.equals(attacker)) {
-                p.sendMessage(handler.getPlayerTeam(attacker).color + attacker.getName() + ChatColor.RESET + " shot " +
-                        handler.getPlayerTeam(attacked).color + attacked.getName() + ChatColor.RESET + ".");
+                p.sendMessage(TeamHandler.getInstance().getPlayerTeam(attacker).color + attacker.getName() + ChatColor.RESET + " shot " +
+                        TeamHandler.getInstance().getPlayerTeam(attacked).color + attacked.getName() + ChatColor.RESET + ".");
             }
         }
+    }
+
+    private void checkedTargetForArrows(Player target) {
+        ItemStack[] contents = target.getInventory().getStorageContents();
+        for(ItemStack stack: contents) {
+            if(stack != null && stack.getType() == Material.ARROW) {
+                NamespacedKey key = new NamespacedKey(plugin, "ID");
+                String id = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+
+                if(arrow1.getId().equals(UUID.fromString(id))) {
+                    arrow1.resetArrowTimeAdd();
+                } else if (arrow2.getId().equals(UUID.fromString(id))) {
+                    arrow2.resetArrowTimeAdd();
+                }
+            }
+        }
+        ItemStack cursorStack = target.getOpenInventory().getCursor();
+        if(cursorStack.getType() == Material.ARROW) {
+            ItemMeta arrowMeta = cursorStack.getItemMeta();
+            NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
+            String id = arrowMeta.getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
+            if(id != null) {
+                if(arrow1.getId().equals(UUID.fromString(id))) {
+                    arrow1.resetArrowTimeAdd();
+                } else if (arrow2.getId().equals(UUID.fromString(id))) {
+                    arrow2.resetArrowTimeAdd();
+                }
+            }
+        }
+        ItemStack[] craftingContents = target.getOpenInventory().getTopInventory().getContents();
+        for(ItemStack item: craftingContents) {
+            if(item != null && item.getType() == Material.ARROW) {
+                ItemMeta arrowMeta = item.getItemMeta();
+                NamespacedKey namespacedKey = new NamespacedKey(plugin, "ID");
+                String id = arrowMeta.getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
+                if(id != null) {
+                    if(arrow1.getId().equals(UUID.fromString(id))) {
+                        arrow1.resetArrowTimeAdd();
+                    } else if (arrow2.getId().equals(UUID.fromString(id))) {
+                        arrow2.resetArrowTimeAdd();
+                    }
+                }
+            }
+        }
+
+        target.getInventory().clear();
     }
 }

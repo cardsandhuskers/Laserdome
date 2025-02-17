@@ -31,3 +31,8 @@ The carpets in the actual playing field will do the same
 
 **setLaserdomeArenaLoc2**
 - sets corner 2 of the playing field
+
+
+Version Log:
+- 1.0: Base Working Laserdome game
+- 1.1: Arrows are time-limited so teams cannot hold them indefinitely

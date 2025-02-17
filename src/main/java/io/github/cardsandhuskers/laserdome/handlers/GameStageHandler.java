@@ -5,6 +5,7 @@ import io.github.cardsandhuskers.laserdome.listeners.*;
 import io.github.cardsandhuskers.laserdome.objects.ArrowHolder;
 import io.github.cardsandhuskers.laserdome.objects.Countdown;
 import io.github.cardsandhuskers.laserdome.objects.GameMessages;
+import io.github.cardsandhuskers.laserdome.objects.stats.Stats;
 import io.github.cardsandhuskers.teams.handlers.TeamHandler;
 import io.github.cardsandhuskers.teams.objects.Team;
 import org.apache.commons.csv.CSVFormat;
@@ -29,7 +30,6 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import static io.github.cardsandhuskers.laserdome.Laserdome.*;
-import static io.github.cardsandhuskers.teams.Teams.handler;
 
 public class GameStageHandler {
     private final Laserdome plugin;
@@ -42,6 +42,8 @@ public class GameStageHandler {
     public HashMap<Player, Integer> killsMap;
 
     private ArrowHolder arrowHolder1, arrowHolder2;
+
+    private Stats stats;
 
     public GameStageHandler(Laserdome plugin) {
         ArrayList<Team> teamList = TeamHandler.getInstance().getPointsSortedList();
@@ -58,9 +60,11 @@ public class GameStageHandler {
         arrowHolder1 = new ArrowHolder(plugin, teamA, teamB, "Arrow 1");
         arrowHolder2 = new ArrowHolder(plugin, teamA, teamB, "Arrow 2");
 
+        stats = new Stats("Round,Shooter,ShooterTeam,Status,Target,TargetTeam");
+
         plugin.getServer().getPluginManager().registerEvents(new PlayerAttackListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PlayerMoveListener(plugin, teamA, teamB, this), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new ArrowHitListener(plugin, teamA, teamB, arenaColorHandler, this, arrowHolder1, arrowHolder2), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ArrowHitListener(plugin, teamA, teamB, arenaColorHandler, this, arrowHolder1, arrowHolder2, stats), plugin);
         plugin.getServer().getPluginManager().registerEvents(new ArrowDestroyListener(plugin, arrowHolder1, arrowHolder2), plugin);
         plugin.getServer().getPluginManager().registerEvents(new ArrowShootListener(plugin, arrowHolder1, arrowHolder2), plugin);
 
@@ -108,7 +112,7 @@ public class GameStageHandler {
                 //Each Second
                 (t) -> {
                     timeVar = t.getSecondsLeft();
-                    if(t.getSecondsLeft() == t.getTotalSeconds() - 2) Bukkit.broadcastMessage(GameMessages.gameDescription(teamA.color, teamB.color));
+                    if(t.getSecondsLeft() == t.getTotalSeconds() - 2) Bukkit.broadcastMessage(GameMessages.gameDescription(teamA.color, teamB.color, plugin.getConfig().getInt("ArrowTime")));
                     if(t.getSecondsLeft() == t.getTotalSeconds() - 12) Bukkit.broadcastMessage(GameMessages.winDescription(teamA.color, teamB.color));
 
                 }
@@ -248,9 +252,9 @@ public class GameStageHandler {
         arrowHolder1.onRoundEnd();
         arrowHolder2.onRoundEnd();
 
-        //arrowCountdownHandler.cancelOperation();
         arenaColorHandler.numShrinks = 0;
         arenaColorHandler.numShots = 0;
+        System.out.println("Num Shots RESET");
         gameState = GameState.ROUND_OVER;
         if(teamAWins == 3) {
             gameOver(teamA);
@@ -296,6 +300,10 @@ public class GameStageHandler {
         }
     }
     public void gameOver(Team winner) {
+
+        int eventNum;
+        try {eventNum = Bukkit.getPluginManager().getPlugin("LobbyPlugin").getConfig().getInt("eventNum");} catch (Exception e) {eventNum = 1;}
+        stats.writeToFile(plugin.getDataFolder().toPath().toString(), "Stats" + eventNum);
 
         //FIREWORKS
         for(int i = 0; i < 10; i++) {
@@ -405,8 +413,8 @@ public class GameStageHandler {
         //printer.printRecord(currentGame);
         for(Player p:killsMap.keySet()) {
             if(p == null) continue;
-            if(handler.getPlayerTeam(p) == null) continue;
-            printer.printRecord(eventNum, handler.getPlayerTeam(p).getTeamName(), p.getDisplayName(), killsMap.get(p));
+            if(TeamHandler.getInstance().getPlayerTeam(p) == null) continue;
+            printer.printRecord(eventNum, TeamHandler.getInstance().getPlayerTeam(p).getTeamName(), p.getDisplayName(), killsMap.get(p));
         }
         writer.close();
         try {

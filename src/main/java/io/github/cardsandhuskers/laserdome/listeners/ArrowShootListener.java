@@ -2,23 +2,20 @@ package io.github.cardsandhuskers.laserdome.listeners;
 
 import io.github.cardsandhuskers.laserdome.Laserdome;
 import io.github.cardsandhuskers.laserdome.objects.ArrowHolder;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Arrow;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.UUID;
 
 public class ArrowShootListener implements Listener {
-    Laserdome plugin;
-    ArrowHolder arrow1, arrow2;
+    private final Laserdome plugin;
+    private final ArrowHolder arrow1, arrow2;
 
     public ArrowShootListener(Laserdome plugin, ArrowHolder arrow1, ArrowHolder arrow2) {
         this.plugin = plugin;
@@ -33,10 +30,8 @@ public class ArrowShootListener implements Listener {
             ItemStack arrowStack = e.getConsumable();
 
             if(arrowStack != null) {
-                System.out.println("FOUND STACK TO SHOOT");
                 NamespacedKey key = new NamespacedKey(plugin, "ID");
                 if (arrowStack.hasItemMeta() && arrowStack.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
-                    System.out.println("STACK HAS DATA CONTAINER");
                     String id = arrowStack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
 
                     Arrow arrow = (Arrow) e.getProjectile();
@@ -49,7 +44,7 @@ public class ArrowShootListener implements Listener {
                     }
                 }
             } else {
-                System.out.println("Found no stack");
+                //System.out.println("Found no stack");
                 e.setCancelled(true);
             }
         }

@@ -1,19 +1,17 @@
 package io.github.cardsandhuskers.laserdome.handlers;
 
+import io.github.cardsandhuskers.teams.handlers.TeamHandler;
 import io.github.cardsandhuskers.teams.objects.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.Collections;
-
-import static io.github.cardsandhuskers.teams.Teams.handler;
 
 public class SpecBannerHandler {
     Team teamA,teamB;
@@ -40,7 +38,7 @@ public class SpecBannerHandler {
         bBanner.setItemMeta(bBannerMeta);
 
         for(Player p: Bukkit.getOnlinePlayers()) {
-            Team t = handler.getPlayerTeam(p);
+            Team t = TeamHandler.getInstance().getPlayerTeam(p);
             if(!(t == teamA || t == teamB)) {
                 p.getInventory().setItem(3, aBanner);
                 p.getInventory().setItem(5, bBanner);
@@ -70,7 +68,7 @@ public class SpecBannerHandler {
     }
 
     public void updateChoice(String teamName, Player p) {
-        Team team = handler.getTeam(teamName);
+        Team team = TeamHandler.getInstance().getTeam(teamName);
         if(team == null) return;
 
         setArmor(p, team);
