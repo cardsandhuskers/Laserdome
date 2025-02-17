@@ -90,7 +90,6 @@ public class ArrowHolder implements Runnable{
         if(holdingTeam == teamA) arrowSpawn = teamAArrowSpawn;
         else arrowSpawn = teamBArrowSpawn;
 
-        System.out.println("Held Time: " + heldTime);
         if(heldTime >= arrowTime / 2) heldTime = arrowTime / 2;
         else heldTime = 0;
 

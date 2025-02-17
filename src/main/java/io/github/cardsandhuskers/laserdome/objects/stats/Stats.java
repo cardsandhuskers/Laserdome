@@ -95,8 +95,6 @@ public class Stats {
             }
             out = new PrintWriter(path.toString());
 
-            System.out.println(path.toString());
-
             out.print(getCSV());
 
             out.close();

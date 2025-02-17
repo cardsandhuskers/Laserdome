@@ -111,9 +111,6 @@ public class ArrowHitListener implements Listener {
                 e.getEntity().remove();
             }
         }
-
-        System.out.println("num shots before increment: " + arenaColorHandler.numShots);
-
     }
 
     /**

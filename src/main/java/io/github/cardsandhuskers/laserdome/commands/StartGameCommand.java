@@ -26,6 +26,7 @@ public class StartGameCommand implements CommandExecutor {
                 return true;
             }
             p.sendMessage(ChatColor.RED + "ERROR: There must be at least 2 teams");
+
             return true;
         } else if (sender instanceof Player p) {
         } else {

@@ -33,6 +33,11 @@ The carpets in the actual playing field will do the same
 - sets corner 2 of the playing field
 
 
-Version Log:
+## Version Log:
 - 1.0: Base Working Laserdome game
 - 1.1: Arrows are time-limited so teams cannot hold them indefinitely
+
+## Dependencies:
+- Teams Plugin (https://github.com/cardsandhuskers/TeamsPlugin)
+    - note: this must be manually set up as a local library on your machine to build this plugin
+- optional: PlaceholderAPI for scoreboard placeholders

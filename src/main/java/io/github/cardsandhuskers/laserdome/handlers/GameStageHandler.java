@@ -8,6 +8,9 @@ import io.github.cardsandhuskers.laserdome.objects.GameMessages;
 import io.github.cardsandhuskers.laserdome.objects.stats.Stats;
 import io.github.cardsandhuskers.teams.handlers.TeamHandler;
 import io.github.cardsandhuskers.teams.objects.Team;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
@@ -112,8 +115,9 @@ public class GameStageHandler {
                 //Each Second
                 (t) -> {
                     timeVar = t.getSecondsLeft();
-                    if(t.getSecondsLeft() == t.getTotalSeconds() - 2) Bukkit.broadcastMessage(GameMessages.gameDescription(teamA.color, teamB.color, plugin.getConfig().getInt("ArrowTime")));
-                    if(t.getSecondsLeft() == t.getTotalSeconds() - 12) Bukkit.broadcastMessage(GameMessages.winDescription(teamA.color, teamB.color));
+
+                    if(t.getSecondsLeft() == t.getTotalSeconds() - 2) Bukkit.broadcast(GameMessages.getGameDesc(teamA.getConfigColor(), teamB.getConfigColor(), plugin.getConfig().getInt("ArrowTime")));
+                    if(t.getSecondsLeft() == t.getTotalSeconds() - 12) Bukkit.broadcast(GameMessages.getGameWinDesc(teamA.getConfigColor(), teamB.getConfigColor()));
 
                 }
         );
@@ -254,7 +258,6 @@ public class GameStageHandler {
 
         arenaColorHandler.numShrinks = 0;
         arenaColorHandler.numShots = 0;
-        System.out.println("Num Shots RESET");
         gameState = GameState.ROUND_OVER;
         if(teamAWins == 3) {
             gameOver(teamA);
@@ -266,7 +269,8 @@ public class GameStageHandler {
     }
 
     /**
-     *
+     * Executes behaviors when a valid shot happens, calls the round end if
+     * it determines a team has no alive players
      * @param shotTeam - team that was hit by the shot
      */
     public void onValidShot(Team shotTeam) {
@@ -276,12 +280,7 @@ public class GameStageHandler {
                 lastWinner = teamB;
                 teamBWins++;
                 roundOver();
-
-                for(Player p:Bukkit.getOnlinePlayers()) {
-                    p.sendTitle(teamB.color + "Round Over", teamB.color + teamB.getTeamName() + " Wins!",5,10,5);
-                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING,1,2);
-                }
-                Bukkit.broadcastMessage(teamB.color + teamB.getTeamName() + ChatColor.RESET + " Won Round " + ChatColor.YELLOW + (teamAWins + teamBWins));
+                announceRoundWinner(teamB);
             }
         }
         if(shotTeam.equals(teamB)) {
@@ -290,15 +289,24 @@ public class GameStageHandler {
                 lastWinner = teamA;
                 teamAWins++;
                 roundOver();
-
-                for(Player p:Bukkit.getOnlinePlayers()) {
-                    p.sendTitle(teamA.color + "Round Over", teamA.color + teamA.getTeamName() + " Wins!",5,10,5);
-                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING,1,2);
-                }
-                Bukkit.broadcastMessage(teamA.color + teamA.getTeamName() + ChatColor.RESET + " Won Round " + ChatColor.YELLOW + (teamAWins + teamBWins));
+                announceRoundWinner(teamA);
             }
         }
     }
+
+    /**
+     * Sends the messages for when a team wins a round
+     * @param winner - team that won the round
+     */
+    private void announceRoundWinner(Team winner) {
+        Title roundEndTitle = GameMessages.getRoundEndTitle(winner);
+        for(Player p:Bukkit.getOnlinePlayers()) {
+            p.showTitle(roundEndTitle);
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING,1,2);
+        }
+        Bukkit.broadcast(GameMessages.getRoundWinMessage(winner));
+    }
+
     public void gameOver(Team winner) {
 
         int eventNum;
@@ -371,13 +379,14 @@ public class GameStageHandler {
                 (t) -> {
                     timeVar = t.getSecondsLeft();
                     if(t.getSecondsLeft() == t.getTotalSeconds() - 1) {
+                        Title title = GameMessages.getWinnerTitle(winner);
                         for(Player p:Bukkit.getOnlinePlayers()) {
-                            p.sendTitle(winner.color + winner.getTeamName(), "HAS WON THE EVENT!",10,100,10);
+                            p.showTitle(title);
                             net.kyori.adventure.sound.Sound sound = net.kyori.adventure.sound.Sound.sound(Sound.MUSIC_DISC_PRECIPICE, net.kyori.adventure.sound.Sound.Source.PLAYER, 1f, 1f);
                             p.playSound(sound, net.kyori.adventure.sound.Sound.Emitter.self());
 
                         }
-                        Bukkit.broadcastMessage(GameMessages.announceWinner(winner));
+                        Bukkit.broadcast(GameMessages.getWinnerMessage(winner));
                     }
                     if(timeVar == t.getSecondsLeft() - 6) {
                         arenaColorHandler.rebuildFloor();
