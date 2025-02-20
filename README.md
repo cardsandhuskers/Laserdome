@@ -1,4 +1,5 @@
 # Laserdome
+For 1.21.1
 A duel between the two teams with the most points
 All concrete in the arena will be replaced by the color of the teams participating. Each side for each team. 
 The carpets in the actual playing field will do the same
@@ -39,5 +40,5 @@ The carpets in the actual playing field will do the same
 
 ## Dependencies:
 - Teams Plugin (https://github.com/cardsandhuskers/TeamsPlugin)
-    - note: this must be manually set up as a local library on your machine to build this plugin
+    - note: the package is hosted on GitHub, it is public but you still need a key to authenticate your account
 - optional: PlaceholderAPI for scoreboard placeholders
